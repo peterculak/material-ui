@@ -180,6 +180,18 @@ export const styles = theme => ({
       width: 2,
     },
   },
+  railHover: {
+    position: 'absolute',
+    width: '100%',
+    height: 2,
+    borderRadius: 1,
+    backgroundColor: 'currentColor',
+    opacity: 1,
+    '$vertical &': {
+      height: '100%',
+      width: 2,
+    },
+  },
   /* Styles applied to the track element. */
   track: {
     display: 'block',
@@ -292,6 +304,8 @@ const Slider = React.forwardRef(function Slider(props, ref) {
     onChange,
     onChangeCommitted,
     onMouseDown,
+    onMouseOut,
+    onMouseOver,
     orientation = 'horizontal',
     step = 1,
     ThumbComponent = 'span',
@@ -623,6 +637,31 @@ const Slider = React.forwardRef(function Slider(props, ref) {
     ...axisProps[axis].leap(trackLeap),
   };
 
+  const [railHoverWidth, setRailHoverWidth] = React.useState(0);
+  const railHoverStyle = {
+    width: `${railHoverWidth}px`,
+  };
+  const handleSliderMouseOver = (event) => {
+    const rect = event.target.getBoundingClientRect();
+    const x = event.clientX - rect.left; //x position within the element.
+    setRailHoverWidth(x);
+
+    if (onMouseOver) {
+      onMouseOver();
+    }
+  };
+  const handleSliderMouseOut = (event) => {
+    if (onMouseOut) {
+      onMouseOut();
+    }
+    setRailHoverWidth(0);
+  };
+  const handleSliderMouseMove = (event) => {
+    const rect = event.target.getBoundingClientRect();
+    const x = event.clientX - rect.left; //x position within the element.
+    setRailHoverWidth(x);
+  };
+
   return (
     <Component
       ref={handleRef}
@@ -636,9 +675,16 @@ const Slider = React.forwardRef(function Slider(props, ref) {
         className,
       )}
       onMouseDown={handleMouseDown}
+      onMouseOver={handleSliderMouseOver}
+      onMouseOut={handleSliderMouseOut}
+      onMouseMove={handleSliderMouseMove}
       {...other}
     >
       <span className={classes.rail} />
+      <span
+        style={railHoverStyle}
+        className={classes.railHover}
+      />
       <span className={classes.track} style={trackStyle} />
       <input value={values.join(',')} name={name} type="hidden" />
       {marks.map(mark => {
